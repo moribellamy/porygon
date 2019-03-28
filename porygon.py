@@ -3,39 +3,48 @@
 import PIL
 import pprint
 import pytesseract
-import RPi.GPIO as GPIO
-import smbus
+import smbus2
 import subprocess
 import sys
 import tempfile
 import time
 
-
-GPIO.setmode(GPIO.BOARD)
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError:
+    # If we're not running ona Pi, then we are running a test and
+    # we can count on the test to stub out a mock GPIO module.
+    GPIO = None
 
 Y = (7, 'Y')
 B = (11, 'B')
 X = (13, 'X')
 A = (15, 'A')
-
 HOME = (37, 'HOME')
 
+REG_WRITE_ADDR = 0x40
+bus = smbus2.SMBus(1)
 
-for but in [A, B, X, Y, HOME]:
-    GPIO.setup(but[0], GPIO.OUT)
-    GPIO.output(but[0], False)
+# LR_NEUTRAL = 800
+# UD_NEUTRAL = 780
+LR_NEUTRAL = 680
+UD_NEUTRAL = 650
+
+
+def init_pi():
+    GPIO.setmode(GPIO.BOARD)
+    for but in [A, B, X, Y, HOME]:
+        GPIO.setup(but[0], GPIO.OUT)
+        GPIO.output(but[0], False)
+    still()
 
 
 def press(but, hold_delay=.1, rest_delay=.1):
-    print 'pressing {}'.format(but[1])
+    print('pressing {}'.format(but[1]))
     GPIO.output(but[0], True)
     time.sleep(hold_delay)
     GPIO.output(but[0], False)
     time.sleep(rest_delay)
-
-
-REG_WRITE_ADDR = 0x40
-bus = smbus.SMBus(1)
 
 
 def set_leftright(level):
@@ -50,23 +59,13 @@ def set_updown(level):
     bus.write_i2c_block_data(0x60, REG_WRITE_ADDR, msg)
 
 
-#LR_NEUTRAL = 800
-#UD_NEUTRAL = 780
-
-LR_NEUTRAL = 680
-UD_NEUTRAL = 650
-
-
 def still():
     set_leftright(LR_NEUTRAL)
     set_updown(UD_NEUTRAL)
 
 
-still()
-
-
 def go_left(hold_delay=.1, rest_delay=.1):
-    print 'going left for {} seconds'.format(hold_delay)
+    print('going left for {} seconds'.format(hold_delay))
     set_leftright(LR_NEUTRAL + 300)
     time.sleep(hold_delay)
     still()
@@ -74,7 +73,7 @@ def go_left(hold_delay=.1, rest_delay=.1):
 
 
 def go_right(hold_delay=.1, rest_delay=.1):
-    print 'going right for {} seconds'.format(hold_delay)
+    print('going right for {} seconds'.format(hold_delay))
     set_leftright(LR_NEUTRAL - 300)
     time.sleep(hold_delay)
     still()
@@ -82,7 +81,7 @@ def go_right(hold_delay=.1, rest_delay=.1):
 
 
 def go_up(hold_delay=.1, rest_delay=.1):
-    print 'going up for {} seconds'.format(hold_delay)
+    print('going up for {} seconds'.format(hold_delay))
     set_updown(UD_NEUTRAL + 300)
     time.sleep(hold_delay)
     still()
@@ -90,7 +89,7 @@ def go_up(hold_delay=.1, rest_delay=.1):
 
 
 def go_down(hold_delay=.1, rest_delay=.1):
-    print 'going down for {} seconds'.format(hold_delay)
+    print('going down for {} seconds'.format(hold_delay))
     set_updown(UD_NEUTRAL - 300)
     time.sleep(hold_delay)
     still()
@@ -161,13 +160,13 @@ def read_cropped_image(coords):
         retval = pytesseract.image_to_string(cropped)
         return retval
     except Exception as e:
-        print e
+        print(e)
         return ''
 
 
 def pickup():
     press(A, rest_delay=3)  # Find the item, wait for message display
-    for _ in xrange(3):
+    for _ in range(3):
         retval = read_cropped_image(DIALOG_CARD)
         # power issues with the camera :<
         if retval:
@@ -286,5 +285,5 @@ if __name__ == '__main__':
             count = found.setdefault(item, 0)
             found[item] = count + 1
             if any('gold' in x for x in found):
-                print 'Done!'
+                print('Done!')
                 sys.exit()
