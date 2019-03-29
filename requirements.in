@@ -2,3 +2,4 @@ Pillow
 pytesseract
 RPi.GPIO
 smbus2
+pytest

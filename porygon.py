@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import configparser
 import PIL
 import pprint
 import pytesseract
@@ -8,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import os
 
 try:
     import RPi.GPIO as GPIO
@@ -16,19 +18,39 @@ except RuntimeError:
     # we can count on the test to stub out a mock GPIO module.
     GPIO = None
 
-Y = (7, 'Y')
-B = (11, 'B')
-X = (13, 'X')
-A = (15, 'A')
-HOME = (37, 'HOME')
 
-REG_WRITE_ADDR = 0x40
-bus = smbus2.SMBus(1)
+# <module_config>
+__config = configparser.ConfigParser()
+__config.read(os.path.join(
+        os.path.dirname(__file__), 'config.ini'
+    )
+)
 
-# LR_NEUTRAL = 800
-# UD_NEUTRAL = 780
-LR_NEUTRAL = 680
-UD_NEUTRAL = 650
+
+def __make_button(name):
+    return int(__config['buttons'][name], 0), name
+
+
+Y = __make_button('Y')
+B = __make_button('B')
+X = __make_button('X')
+A = __make_button('A')
+HOME = __make_button('HOME')
+
+I2C_WRITE_COMMAND = int(__config['joystick']['I2C_WRITE_COMMAND'], 0)
+LR_NEUTRAL = int(__config['joystick']['LR_NEUTRAL'], 0)
+UD_NEUTRAL = int(__config['joystick']['UD_NEUTRAL'], 0)
+# </module_config>
+
+
+__bus = None
+
+
+def bus():
+    global __bus
+    if not __bus:
+        __bus = smbus2.SMBus(1)
+    return __bus
 
 
 def init_pi():
@@ -50,13 +72,14 @@ def press(but, hold_delay=.1, rest_delay=.1):
 def set_leftright(level):
     level &= 0xfff
     msg = [(level & 0xff0) >> 4, (level & 0xf)]
-    bus.write_i2c_block_data(0x61, REG_WRITE_ADDR, msg)
+    print(bus().write_i2c_block_data)
+    bus().write_i2c_block_data(0x61, I2C_WRITE_COMMAND, msg)
 
 
 def set_updown(level):
     level &= 0xfff
     msg = [(level & 0xff0) >> 4, (level & 0xf)]
-    bus.write_i2c_block_data(0x60, REG_WRITE_ADDR, msg)
+    bus().write_i2c_block_data(0x60, I2C_WRITE_COMMAND, msg)
 
 
 def still():
@@ -141,13 +164,6 @@ DIALOG_CARD = (
         DIALOG_UPPER_LEFT_Y,
         DIALOG_UPPER_LEFT_X + 380,
         DIALOG_UPPER_LEFT_Y + 33
-)
-
-OPPONENT_POKE_BATTLE = (
-        DIALOG_UPPER_LEFT_X + 485,
-        DIALOG_UPPER_LEFT_Y - 354,
-        DIALOG_UPPER_LEFT_X + 545,
-        DIALOG_UPPER_LEFT_Y - 340,
 )
 
 
@@ -277,6 +293,7 @@ def do_round(*args):
 
 
 if __name__ == '__main__':
+    init_pi()
     found = {}
     while True:
         pprint.pprint(found)
