@@ -2,8 +2,20 @@ from unittest.mock import patch, MagicMock
 
 import porygon
 
+
 @patch('porygon.bus')
-def test_set_leftright(busfunc):
-    bus = busfunc.return_value = MagicMock()
-    porygon.set_leftright(100)
-    print(bus.write_i2c_block_data.call_args_list)
+def test_tilt_x(busfunc):
+    busfunc.return_value = MagicMock()
+    porygon.tilt_x(100)
+
+
+@patch('porygon.bus')
+def test_tilt_y(busfunc):
+    busfunc.return_value = MagicMock()
+    porygon.tilt_y(100)
+
+
+@patch('porygon.GPIO')
+@patch('porygon.bus')
+def test_init_pi(_, __):
+    porygon.init_pi()

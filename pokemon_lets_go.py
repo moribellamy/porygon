@@ -1,19 +1,21 @@
 #!/usr/bin/env python
 
-from porygon import \
-        init_pi, press, read_cropped_image, still, tilt_x, tilt_y, \
-        A, B, X, Y, HOME
-import time
 import pprint
+import sys
+import time
+
+from porygon import \
+    init_pi, press, read_cropped_image, still, tilt_x, tilt_y, \
+    A, B, X, HOME
 
 DIALOG_UPPER_LEFT_X = 365
 DIALOG_UPPER_LEFT_Y = 442
 
 DIALOG_CARD = (
-        DIALOG_UPPER_LEFT_X,
-        DIALOG_UPPER_LEFT_Y,
-        DIALOG_UPPER_LEFT_X + 380,
-        DIALOG_UPPER_LEFT_Y + 33
+    DIALOG_UPPER_LEFT_X,
+    DIALOG_UPPER_LEFT_Y,
+    DIALOG_UPPER_LEFT_X + 380,
+    DIALOG_UPPER_LEFT_Y + 33
 )
 
 

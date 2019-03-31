@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 
 import configparser
-import PIL
-import pprint
-import pytesseract
-import smbus2
+import os
 import subprocess
-import sys
 import tempfile
 import time
-import os
+
+import PIL
+import pytesseract
+import smbus2
 
 try:
     import RPi.GPIO as GPIO
@@ -18,13 +17,11 @@ except RuntimeError:
     # we can count on the test to stub out a mock GPIO module.
     GPIO = None
 
-
 # <module_config>
 __config = configparser.ConfigParser()
 __config.read(os.path.join(
-        os.path.dirname(__file__), 'config.ini'
-    )
-)
+    os.path.dirname(__file__), 'config.ini'
+))
 
 
 def __make_button(name):
@@ -38,6 +35,8 @@ A = __make_button('A')
 HOME = __make_button('HOME')
 
 I2C_WRITE_COMMAND = int(__config['joystick']['I2C_WRITE_COMMAND'], 0)
+I2C_LEFTRIGHT_ADDR = int(__config['joystick']['I2C_LEFTRIGHT_ADDR'], 0)
+I2C_UPDOWN_ADDR = int(__config['joystick']['I2C_UPDOWN_ADDR'], 0)
 LR_NEUTRAL = int(__config['joystick']['LR_NEUTRAL'], 0)
 UD_NEUTRAL = int(__config['joystick']['UD_NEUTRAL'], 0)
 # </module_config>
@@ -72,7 +71,7 @@ def press(but, hold_delay=.1, rest_delay=.1):
 def set_leftright(level):
     level &= 0xfff
     msg = [(level & 0xff0) >> 4, (level & 0xf)]
-    bus().write_i2c_block_data(0x61, I2C_WRITE_COMMAND, msg)
+    bus().write_i2c_block_data(I2C_LEFTRIGHT_ADDR, I2C_WRITE_COMMAND, msg)
 
 
 def tilt_x(tilt):
@@ -82,7 +81,7 @@ def tilt_x(tilt):
 def set_updown(level):
     level &= 0xfff
     msg = [(level & 0xff0) >> 4, (level & 0xf)]
-    bus().write_i2c_block_data(0x60, I2C_WRITE_COMMAND, msg)
+    bus().write_i2c_block_data(I2C_UPDOWN_ADDR, I2C_WRITE_COMMAND, msg)
 
 
 def tilt_y(tilt):
