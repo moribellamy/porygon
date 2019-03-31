@@ -48,3 +48,7 @@ press(X)  # And so forth.
 ```
 
 For an example end to end script, which takes input from a webcam, read `pokemon_lets_go.py`.
+
+# Development
+
+More games and automations could be added. Use `py.test` to run all of the tests.
