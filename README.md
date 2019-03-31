@@ -6,8 +6,8 @@ https://invoked.net/2019-03-26-joycon-circuit/
 
 # Circuit
 
-* [A circuit diagram](docs/circuit.png)
-* [An example implementation](docs/breadboard.jpg)
+* [A circuit diagram](docs/circuit.png?raw=true)
+* [An example implementation](docs/breadboard.jpg?raw=true)
 
 The parts listed in the circuit:
 
